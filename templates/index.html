@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>加密解密工具</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-lg">
+        <h1 class="text-2xl font-bold mb-6 text-center">加密解密工具</h1>
+
+        <!-- 原有 DES 部分 -->
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold mb-2">DES 加密/解密</h2>
+            <input id="des-text" type="text" placeholder="输入文本" class="border p-2 w-full mb-2">
+            <input id="des-key" type="text" placeholder="输入密钥 (8 字节)" class="border p-2 w-full mb-2">
+            <div class="flex space-x-2">
+                <button onclick="desEncrypt()" class="bg-blue-500 text-white px-4 py-2 rounded">加密</button>
+                <button onclick="desDecrypt()" class="bg-green-500 text-white px-4 py-2 rounded">解密</button>
+            </div>
+            <p id="des-result" class="mt-2 break-words font-mono"></p>
+        </div>
+
+        <!-- 自定义 DES 部分 -->
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold mb-2">自定义 DES 加密/解密</h2>
+            <input id="custom-des-text" type="text" placeholder="输入文本" class="border p-2 w-full mb-2">
+            <input id="custom-des-key" type="text" placeholder="输入密钥 (8 字节)" class="border p-2 w-full mb-2">
+            <div class="flex space-x-2">
+                <button onclick="customDesEncrypt()" class="bg-blue-500 text-white px-4 py-2 rounded">加密</button>
+                <button onclick="customDesDecrypt()" class="bg-green-500 text-white px-4 py-2 rounded">解密</button>
+            </div>
+            <p id="custom-des-result" class="mt-2 break-words font-mono"></p>
+        </div>
+
+        <!-- 原有 RSA 部分 -->
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold mb-2">RSA 加密/解密</h2>
+            <button onclick="generateKeys()" class="bg-purple-500 text-white px-4 py-2 rounded mb-2">生成密钥对</button>
+            <textarea id="rsa-public-key" placeholder="公钥" class="border p-2 w-full mb-2" rows="4"></textarea>
+            <textarea id="rsa-private-key" placeholder="私钥" class="border p-2 w-full mb-2" rows="4"></textarea>
+            <input id="rsa-text" type="text" placeholder="输入文本" class="border p-2 w-full mb-2">
+            <div class="flex space-x-2">
+                <button onclick="rsaEncrypt()" class="bg-blue-500 text-white px-4 py-2 rounded">加密</button>
+                <button onclick="rsaDecrypt()" class="bg-green-500 text-white px-4 py-2 rounded">解密</button>
+            </div>
+            <p id="rsa-result" class="mt-2 break-words font-mono"></p>
+        </div>
+
+        <!-- 自定义 RSA 部分 -->
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold mb-2">自定义 RSA 加密/解密</h2>
+            <button onclick="customGenerateKeys()"
+                class="bg-purple-500 text-white px-4 py-2 rounded mb-2">生成密钥对</button>
+            <textarea id="custom-rsa-public-key" placeholder="公钥" class="border p-2 w-full mb-2" rows="4"></textarea>
+            <textarea id="custom-rsa-private-key" placeholder="私钥" class="border p-2 w-full mb-2" rows="4"></textarea>
+            <input id="custom-rsa-text" type="text" placeholder="输入文本" class="border p-2 w-full mb-2">
+            <div class="flex space-x-2">
+                <button onclick="customRsaEncrypt()" class="bg-blue-500 text-white px-4 py-2 rounded">加密</button>
+                <button onclick="customRsaDecrypt()" class="bg-green-500 text-white px-4 py-2 rounded">解密</button>
+            </div>
+            <p id="custom-rsa-result" class="mt-2 break-words font-mono"></p>
+        </div>
+
+        <!-- 原有 SHA1 部分 -->
+        <div>
+            <h2 class="text-xl font-semibold mb-2">SHA1 哈希</h2>
+            <input id="sha1-text" type="text" placeholder="输入文本" class="border p-2 w-full mb-2">
+            <button onclick="sha1Hash()" class="bg-orange-500 text-white px-4 py-2 rounded">生成哈希</button>
+            <p id="sha1-result" class="mt-2 break-words font-mono"></p>
+        </div>
+
+        <!-- 自定义 SHA1 部分 -->
+        <div class="mt-8">
+            <h2 class="text-xl font-semibold mb-2">自定义 SHA1 哈希</h2>
+            <input id="custom-sha1-text" type="text" placeholder="输入文本" class="border p-2 w-full mb-2">
+            <button onclick="customSha1Hash()" class="bg-orange-500 text-white px-4 py-2 rounded">生成哈希</button>
+            <p id="custom-sha1-result" class="mt-2 break-words font-mono"></p>
+        </div>
+    </div>
+
+    <script>
+        // 原有 DES 函数
+        async function desEncrypt() {
+            const text = document.getElementById('des-text').value;
+            const key = document.getElementById('des-key').value;
+            const response = await fetch('/des/encrypt', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text, key })
+            });
+            const result = await response.json();
+            document.getElementById('des-result').innerText = result.result || result.detail;
+        }
+
+        async function desDecrypt() {
+            const text = document.getElementById('des-text').value;
+            const key = document.getElementById('des-key').value;
+            const response = await fetch('/des/decrypt', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text, key })
+            });
+            const result = await response.json();
+            document.getElementById('des-result').innerText = result.result || result.detail;
+        }
+
+        // 自定义 DES 函数
+        async function customDesEncrypt() {
+            const text = document.getElementById('custom-des-text').value;
+            const key = document.getElementById('custom-des-key').value;
+            const response = await fetch('/custom/des/encrypt', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text, key })
+            });
+            const result = await response.json();
+            document.getElementById('custom-des-result').innerText = result.result || result.detail;
+        }
+
+        async function customDesDecrypt() {
+            const text = document.getElementById('custom-des-text').value;
+            const key = document.getElementById('custom-des-key').value;
+            const response = await fetch('/custom/des/decrypt', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text, key })
+            });
+            const result = await response.json();
+            document.getElementById('custom-des-result').innerText = result.result || result.detail;
+        }
+
+        // 原有 RSA 函数
+        async function generateKeys() {
+            const response = await fetch('/rsa/generate-keys');
+            const { private_key, public_key } = await response.json();
+            document.getElementById('rsa-private-key').value = private_key;
+            document.getElementById('rsa-public-key').value = public_key;
+        }
+
+        async function rsaEncrypt() {
+            const text = document.getElementById('rsa-text').value;
+            const key = document.getElementById('rsa-public-key').value;
+            const response = await fetch('/rsa/encrypt', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text, key })
+            });
+            const result = await response.json();
+            document.getElementById('rsa-result').innerText = result.result || result.detail;
+        }
+
+        async function rsaDecrypt() {
+            const text = document.getElementById('rsa-text').value;
+            const key = document.getElementById('rsa-private-key').value;
+            const response = await fetch('/rsa/decrypt', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text, key })
+            });
+            const result = await response.json();
+            document.getElementById('rsa-result').innerText = result.result || result.detail;
+        }
+
+        // 自定义 RSA 函数
+        async function customGenerateKeys() {
+            const response = await fetch('/custom/rsa/generate-keys');
+            const { private_key, public_key } = await response.json();
+            document.getElementById('custom-rsa-private-key').value = private_key;
+            document.getElementById('custom-rsa-public-key').value = public_key;
+        }
+
+        async function customRsaEncrypt() {
+            const text = document.getElementById('custom-rsa-text').value;
+            const key = document.getElementById('custom-rsa-public-key').value;
+            const response = await fetch('/custom/rsa/encrypt', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text, key })
+            });
+            const result = await response.json();
+            document.getElementById('custom-rsa-result').innerText = result.result || result.detail;
+        }
+
+        async function customRsaDecrypt() {
+            const text = document.getElementById('custom-rsa-text').value;
+            const key = document.getElementById('custom-rsa-private-key').value;
+            const response = await fetch('/custom/rsa/decrypt', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text, key })
+            });
+            const result = await response.json();
+            document.getElementById('custom-rsa-result').innerText = result.result || result.detail;
+        }
+
+        // 原有 SHA1 函数
+        async function sha1Hash() {
+            const text = document.getElementById('sha1-text').value;
+            const response = await fetch('/sha1/hash', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text })
+            });
+            const result = await response.json();
+            document.getElementById('sha1-result').innerText = result.result || result.detail;
+        }
+
+        // 自定义 SHA1 函数
+        async function customSha1Hash() {
+            const text = document.getElementById('custom-sha1-text').value;
+            const response = await fetch('/custom/sha1/hash', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text })
+            });
+            const result = await response.json();
+            document.getElementById('custom-sha1-result').innerText = result.result || result.detail;
+        }
+    </script>
+</body>
+
+</html>
